@@ -1,0 +1,45 @@
+import re
+
+OPERATORS = {
+    "^": lambda x, y: x ** y,
+    "/": lambda x, y: x / y,
+    "log10": lambda x: np.log10(x),
+    "sqrt": lambda x: np.sqrt(x),
+}
+
+
+def parse_function(function_str):
+    """
+    Parses a user-entered function string into a lambda function.
+
+    Args:
+        function_str: The string representation of the function (e.g., 5*x^3+2*x).
+
+    Returns:
+        A lambda function representing the parsed expression.
+
+    Raises:
+        ValueError: If the function string is invalid.
+    """
+
+    # Split the function string by variable (x) and operators
+    tokens = re.split(r"([^\w\.])", function_str)
+
+    # Function body will store the parsed expression
+    function_body = []
+    for token in tokens:
+        if token == "":
+            continue
+        elif token.isalpha():
+            if token != "x":
+                raise ValueError("Invalid variable name. Only 'x' is allowed.")
+            function_body.append("x")  # Replace variable with 'x'
+        elif token.isdigit() or token.startswith("."):
+            function_body.append(float(token))  # Add numeric constants
+        elif token in OPERATORS:
+            function_body.append(OPERATORS[token])  # Add operators
+        else:
+            raise ValueError(f"Invalid operator: {token}")
+
+    # Combine parsed elements into a single lambda function
+    return eval(f"lambda x: {' '.join(map(str, function_body))}")
