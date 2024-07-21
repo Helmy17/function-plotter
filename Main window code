@@ -1,0 +1,114 @@
+import sys
+from PySide2.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QMessageBox,
+)
+from PySide2.QtCore import Qt
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+
+
+class FunctionPlotter(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Function Plotter")
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+
+        self.create_layout()
+
+    def create_layout(self):
+        layout = QVBoxLayout()
+
+        # Function input
+        function_label = QLabel("Function (e.g., 5*x^3+2*x):")
+        self.function_input = QLineEdit()
+        layout.addWidget(function_label)
+        layout.addWidget(self.function_input)
+
+        # Min and Max input
+        min_max_label = QLabel("Min and Max values of x (separated by comma):")
+        self.min_max_input = QLineEdit()
+        layout.addWidget(min_max_label)
+        layout.addWidget(self.min_max_input)
+
+        # Plot button
+        plot_button = QPushButton("Plot Function")
+        plot_button.clicked.connect(self.plot_function)
+        layout.addWidget(plot_button)
+
+        self.central_widget.setLayout(layout)
+
+    def plot_function(self):
+        function_str = self.function_input.text().strip()
+        min_max_str = self.min_max_input.text().strip()
+
+        # Validate input
+        if not self.validate_input(function_str, min_max_str):
+            return
+
+        try:
+            # Extract function and convert to a lambda
+            function = self.parse_function(function_str)
+            min_val, max_val = map(float, min_max_str.split(","))
+
+            # Create plot
+            self.create_plot(function, min_val, max_val)
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+
+    def validate_input(self, function_str, min_max_str):
+        if not function_str:
+            QMessageBox.warning(self, "Warning", "Please enter a function.")
+            return False
+
+        if not min_max_str:
+            QMessageBox.warning(self, "Warning", "Please enter min and max values.")
+            return False
+
+        try:
+            # Basic validation for comma separation
+            min_val, max_val = map(float, min_max_str.split(","))
+        except ValueError:
+            QMessageBox.warning(self, "Warning", "Invalid min/max format (comma separated numbers).")
+            return False
+
+        return True
+
+    def parse_function(self, function_str):
+        # Implement logic to parse the function string into a lambda function
+        # This can involve using libraries like sympy or creating your own parser
+        # Here's a simplified example using eval (not recommended in production)
+        #  for educational purposes only.
+        return eval(f"lambda x: {function_str}")
+
+    def create_plot(self, function, min_val, max_val):
+        x = np.linspace(min_val, max_val, 100)  # Generate x-axis points
+        y = function(x)  # Calculate y-axis values
+
+        # Create and embed matplotlib plot
+        fig, ax = plt.subplots()
+        ax.plot(x, y)
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+
+        canvas = FigureCanvasQTAgg(fig)
+        plot_layout = QHBoxLayout()
+        plot_layout.addWidget(canvas)
+
+        # Clear any existing plot
+        for i in reversed(range(self.central_widget.layout().count())):
+            item = self.central_widget.layout().itemAt(i)
+            widget = item.widget()
+            if widget is not None:
+                widget.setParent(None)
+                self.
