@@ -1,0 +1,60 @@
+import pytest
+
+from function_plotter import FunctionPlotter, parse_function
+
+
+@pytest.mark.gui
+def test_plot_valid_function(qtbot):
+    # Create the application
+    app = QApplication(sys.argv)
+    window = FunctionPlotter()
+    window.show()
+    qtbot.addWidget(window)
+
+    # Simulate user input
+    function_input = window.function_input
+    min_max_input = window.min_max_input
+    qtbot.keyClicks(function_input, "5*x^2+3*x")
+    qtbot.keyClicks(min_max_input, "-2,4")
+
+    # Click plot button
+    plot_button = window.findChild(QPushButton, "Plot Function")
+    qtbot.click(plot_button)
+
+    # Assert the plot exists (basic check)
+    assert window.central_widget.layout().count() > 0
+
+
+@pytest.mark.parametrize(
+    "function_str, expected_error",
+    [
+        ("", "Please enter a function."),
+        ("invalid_expression", "Invalid operator: invalid_expression"),
+        ("y = 2*x", "Invalid variable name. Only 'x' is allowed."),
+    ],
+)
+def test_validate_input_invalid_function(function_str, expected_error, qtbot):
+    # Create the application
+    app = QApplication(sys.argv)
+    window = FunctionPlotter()
+    window.show()
+    qtbot.addWidget(window)
+
+    # Simulate user input
+    function_input = window.function_input
+    min_max_input = window.min_max_input
+    qtbot.keyClicks(function_input, function_str)
+    qtbot.keyClicks(min_max_input, "1,5")
+
+    # Click plot button
+    plot_button = window.findChild(QPushButton, "Plot Function")
+    qtbot.click(plot_button)
+
+    # Assert error message is shown
+    messages = qtbot.text(window.findChild(QMessageBox))
+    assert expected_error in messages
+
+
+@pytest.mark.parametrize(
+    "function_str, expected_result",
+    [("5*x^2 + 3*
