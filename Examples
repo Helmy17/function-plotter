@@ -1,0 +1,2 @@
+Working: Function: 2*x + 1, Min: -2, Max: 5 (Shows a straight line)
+Wrong: Function: invalid_expression, Min: 1, Max: 5 (Error: invalid operator)
